@@ -1,5 +1,5 @@
-import { Card, Deck } from "./deck";
-import { Hand } from "./hand";
+import { Deck } from './deck';
+import { Hand } from './hand';
 
 export class Player {
 	private _hand: Hand;

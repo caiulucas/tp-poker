@@ -1,7 +1,4 @@
-import WebSocket from "ws";
-import { Deck } from "./domain/models/deck";
-
-const deck = Deck.shuffle();
+import WebSocket from 'ws';
 
 const server = new WebSocket.Server({
 	port: 3333,
@@ -9,14 +6,14 @@ const server = new WebSocket.Server({
 
 const sockets: WebSocket[] = [];
 
-server.on("connection", (socket) => {
+server.on('connection', (socket) => {
 	sockets.push(socket);
 
-	socket.on("message", (msg) => {
+	socket.on('message', (msg) => {
 		for (const s of sockets) {
 			s.send(msg);
 		}
 	});
 
-	socket.on("close", () => sockets.filter((s) => s !== socket));
+	socket.on('close', () => sockets.filter((s) => s !== socket));
 });

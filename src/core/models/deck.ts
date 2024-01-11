@@ -1,4 +1,4 @@
-enum Rank {
+export enum Rank {
 	Two = 0,
 	Three = 1,
 	Four = 2,
@@ -14,7 +14,12 @@ enum Rank {
 	Ace = 12,
 }
 
-type Suit = "♠" | "♥" | "♦" | "♣";
+export enum Suit {
+	Spades = 0,
+	Hearts = 1,
+	Diamonds = 2,
+	Clubs = 3,
+}
 
 export type Card = {
 	suit: Suit;
@@ -25,7 +30,7 @@ export class Deck {
 	private _cards: Card[] = [];
 
 	private constructor() {
-		const suits: Suit[] = ["♠", "♥", "♦", "♣"];
+		const suits: Suit[] = [Suit.Spades, Suit.Hearts, Suit.Diamonds, Suit.Clubs];
 		const ranks: Rank[] = [
 			Rank.Two,
 			Rank.Three,
@@ -56,13 +61,23 @@ export class Deck {
 			const j = Math.floor(Math.random() * (i + 1));
 			[deck._cards[i], deck._cards[j]] = [deck._cards[j], deck._cards[i]];
 		}
+
+		return deck;
+	}
+
+	public static compareRank(card1: Card, card2: Card) {
+		return card1.rank > card2.rank;
+	}
+
+	public static compareSuit(card1: Card, card2: Card) {
+		return card1.suit > card2.suit;
 	}
 
 	public draw() {
 		return this._cards.pop();
 	}
 
-	get cards() {
+	public get cards() {
 		return this._cards;
 	}
 }
