@@ -1,4 +1,5 @@
-import { Card, Deck, Rank } from './deck';
+import { Card, Rank } from './card';
+import { Deck } from './deck';
 
 export class Hand {
 	private _cards: Card[] = [];
@@ -19,12 +20,12 @@ export class Hand {
 		return new Hand(deck);
 	}
 
-	public higherCard(flop: Card[]): Card {
+	public isHigherCard(flop: Card[]): Card {
 		const cards = [...flop, ...this._cards];
 		let higherCard = cards[0];
 
 		for (const card of cards) {
-			if (Deck.compareRank(card, higherCard)) {
+			if (card.isRankHigherThan(higherCard)) {
 				higherCard = card;
 			}
 		}
@@ -32,42 +33,110 @@ export class Hand {
 		return higherCard;
 	}
 
-	public isPair(flop: Card[]): boolean {
-		const cards = [...flop, ...this._cards];
+	private getPairs(cards: Card[]): Card[][] {
+		const pairs: Card[][] = [];
+		let filteredCards = [...cards];
 
 		for (const card of cards) {
-			const pair = cards.find((c) => c.rank === card.rank);
+			const pair = filteredCards.filter((c) => c.isRankEqual(card));
 
-			if (pair) {
-				return true;
+			if (pair.length === 2) {
+				pairs.push(pair);
+				filteredCards = filteredCards.filter((c) => !c.isRankEqual(card));
 			}
 		}
 
-		return false;
+		return pairs;
+	}
+
+	public isPair(flop: Card[]): boolean {
+		const cards = [...flop, ...this._cards];
+
+		const pairs = this.getPairs(cards);
+		return pairs.length === 1;
 	}
 
 	public isTwoPairs(flop: Card[]): boolean {
 		const cards = [...flop, ...this._cards];
-		let pairs = 0;
+
+		const pairs = this.getPairs(cards);
+		return pairs.length === 2;
+	}
+
+	private getThreeOfAKind(cards: Card[]): Card[][] {
+		const threeOfAKind: Card[][] = [];
+		let filteredCards = [...cards];
 
 		for (const card of cards) {
-			const pair = cards.find((c) => c.rank === card.rank);
+			const aux = filteredCards.filter((c) => c.isRankEqual(card));
 
-			if (pair) {
-				pairs++;
+			if (aux.length === 3) {
+				threeOfAKind.push(aux);
+				filteredCards = filteredCards.filter((c) => !c.isRankEqual(card));
 			}
 		}
 
-		return pairs === 2;
+		return threeOfAKind;
 	}
 
 	public isThreeOfAKind(flop: Card[]): boolean {
 		const cards = [...flop, ...this._cards];
 
-		for (const card of cards) {
-			const aux = cards.filter((c) => c.rank === card.rank);
+		const threeOfAKind = this.getThreeOfAKind(cards);
+		return threeOfAKind.length > 0;
+	}
 
-			if (aux.length === 3) {
+	private getStraight(cards: Card[]): Card[] {
+		let _cards = cards.sort((a, b) => a.rank - b.rank);
+		let straight = [];
+
+		for (let i = 0; i < 4; i++) {
+			if (cards[i].rank + 1 === cards[i + 1].rank) {
+				straight.push(cards[i]);
+			}
+		}
+
+		if (straight.length !== 4) {
+			straight = [];
+		} else {
+			straight.push(cards[4]);
+		}
+
+		_cards = cards.sort((a, b) => b.rank - a.rank);
+
+		for (let i = 0; i < 4; i++) {
+			if (cards[i].rank - 1 === cards[i + 1].rank) {
+				straight.push(cards[i]);
+			}
+		}
+
+		if (straight.length !== 4) {
+			straight = [];
+		} else {
+			straight.push(cards[4]);
+		}
+
+		return straight.sort((a, b) => a.rank - b.rank);
+	}
+
+	public isStraight(flop: Card[]): boolean {
+		const cards = [...flop, ...this._cards];
+		return this.getStraight(cards).length === 5;
+	}
+
+	private verifyFlush(cards: Card[]): boolean {
+		const _cards = cards.sort((a, b) => a.suit - b.suit);
+
+		for (let i = 0; i < 4; i++) {
+			let cardsWithSameSuit = 0;
+
+			for (const card of _cards) {
+				if (card.suit === i) {
+					cardsWithSameSuit++;
+				}
+			}
+
+			if (cardsWithSameSuit >= 5) {
 				return true;
 			}
 		}
@@ -75,35 +144,16 @@ export class Hand {
 		return false;
 	}
 
-	public isStraight(flop: Card[]): boolean {
-		const cards = [...flop, ...this._cards].sort((a, b) => a.rank - b.rank);
-
-		for (let i = 0; i < cards.length - 1; i++) {
-			if (cards[i].rank + 1 !== cards[i + 1].rank) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	public isFlush(flop: Card[]): boolean {
-		const cards = [...flop, ...this._cards].sort((a, b) => a.suit - b.suit);
-
-		for (let i = 0; i < cards.length - 1; i++) {
-			if (cards[i].suit !== cards[i + 1].suit) {
-				return false;
-			}
-		}
-
-		return true;
+		const cards = [...flop, ...this._cards];
+		return this.verifyFlush(cards);
 	}
 
 	public isFourOfAKind(flop: Card[]): boolean {
 		const cards = [...flop, ...this._cards];
 
 		for (const card of cards) {
-			const aux = cards.filter((c) => c.rank === card.rank);
+			const aux = cards.filter((c) => c.isRankEqual(card));
 
 			if (aux.length === 4) {
 				return true;
@@ -114,20 +164,40 @@ export class Hand {
 	}
 
 	public isFullHouse(flop: Card[]): boolean {
-		return this.isPair(flop) && this.isThreeOfAKind(flop);
+		const threeOfAKind = this.getThreeOfAKind([...flop, ...this._cards]);
+
+		if (threeOfAKind.length === 2) {
+			return true;
+		}
+
+		const cards = [...flop, ...this._cards];
+
+		for (const item of threeOfAKind) {
+			for (const card of item) {
+				cards.splice(cards.indexOf(card), 1);
+			}
+		}
+
+		const pairs = this.getPairs(cards);
+
+		return pairs.length > 0 && threeOfAKind.length > 0;
 	}
 
 	public isStraightFlush(flop: Card[]): boolean {
-		return this.isStraight(flop) && this.isFlush(flop);
+		const straight = this.getStraight([...flop, ...this._cards]);
+		return straight.length === 5 && this.verifyFlush(straight);
 	}
 
 	public isRoyalFlush(flop: Card[]): boolean {
-		const cards = [...flop, ...this._cards].sort((a, b) => a.rank - b.rank);
+		const cards = [...flop, ...this._cards];
+		const straight = this.getStraight(cards);
+
+		console.log(straight);
 
 		return (
 			this.isStraightFlush(flop) &&
-			cards[0].rank === Rank.Ten &&
-			cards[4].rank === Rank.Ace
+			straight[0].rank === Rank.Ten &&
+			straight[1].rank === Rank.Jack
 		);
 	}
 
