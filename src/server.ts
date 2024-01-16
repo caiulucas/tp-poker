@@ -1,12 +1,23 @@
 import WebSocket from 'ws';
 
-const server = new WebSocket.Server({
-	port: 3333,
-});
+const server = new WebSocket.Server(
+	{
+		host: 'localhost',
+		port: 3333,
+	},
+	() => {
+		console.log('Server is listening on port 3333');
+	},
+);
 
 const sockets: WebSocket[] = [];
 
 server.on('connection', (socket) => {
+	console.log(
+		'New connection at ',
+		new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+	);
+
 	sockets.push(socket);
 
 	socket.on('message', (msg) => {
