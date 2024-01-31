@@ -21,18 +21,4 @@ describe('Card', () => {
 
 		expect(card1.isSuitEqual(card2)).toBe(true);
 	});
-
-	it('should be able to verify if rank of cards is higher', () => {
-		const card1 = Card.create({ suit: Suit.Spades, rank: Rank.Ace });
-		const card2 = Card.create({ suit: Suit.Spades, rank: Rank.Two });
-
-		expect(card1.isRankHigherThan(card2)).toBe(true);
-	});
-
-	it('should be able to verify if suit of cards is higher', () => {
-		const card1 = Card.create({ suit: Suit.Spades, rank: Rank.Ace });
-		const card2 = Card.create({ suit: Suit.Hearts, rank: Rank.Ace });
-
-		expect(card1.isSuitHigherThan(card2)).toBe(true);
-	});
 });

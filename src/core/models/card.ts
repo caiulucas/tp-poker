@@ -1,24 +1,24 @@
 export enum Rank {
-	Two = 0,
-	Three = 1,
-	Four = 2,
-	Five = 3,
-	Six = 4,
-	Seven = 5,
-	Eight = 6,
-	Nine = 7,
-	Ten = 8,
-	Jack = 9,
-	Queen = 10,
-	King = 11,
-	Ace = 12,
+	Ace = 'A',
+	Two = '2',
+	Three = '3',
+	Four = '4',
+	Five = '5',
+	Six = '6',
+	Seven = '7',
+	Eight = '8',
+	Nine = '9',
+	Ten = 'T',
+	Jack = 'J',
+	Queen = 'Q',
+	King = 'K',
 }
 
 export enum Suit {
-	Clubs = 0,
-	Hearts = 1,
-	Spades = 2,
-	Diamonds = 3,
+	Clubs = 'c',
+	Hearts = 'h',
+	Spades = 's',
+	Diamonds = 'd',
 }
 
 type CardCreateProps = {
@@ -47,19 +47,15 @@ export class Card {
 		return this._suit === card._suit;
 	}
 
-	public isRankHigherThan(card: Card) {
-		return this._rank > card._rank;
-	}
-
-	public isSuitHigherThan(card: Card) {
-		return this._suit > card._suit;
-	}
-
 	get suit() {
 		return this._suit;
 	}
 
 	get rank() {
 		return this._rank;
+	}
+
+	toString() {
+		return `${this._rank}${this._suit}`;
 	}
 }
