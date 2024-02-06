@@ -107,10 +107,7 @@ export class Poker {
 				return { player: updatedPlayer, winner: this.winners() };
 			}
 
-			while (this._flop.length < 5) {
-				this.turnOrRiver(deck);
-			}
-
+			this.turnOrRiver(deck);
 			this._betCount = 0;
 		}
 

@@ -16,6 +16,10 @@ export class Player {
 		return new Player(id, deck);
 	}
 
+	public changeHand(deck: Deck) {
+		this._hand = Hand.create(deck);
+	}
+
 	public get id() {
 		return this._id;
 	}

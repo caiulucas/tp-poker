@@ -39,6 +39,17 @@ export class Deck {
 		return deck;
 	}
 
+	public reset() {
+		const deck = new Deck();
+
+		for (let i = deck._cards.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[deck._cards[i], deck._cards[j]] = [deck._cards[j], deck._cards[i]];
+		}
+
+		return deck;
+	}
+
 	public draw() {
 		return this._cards.pop();
 	}

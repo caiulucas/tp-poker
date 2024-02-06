@@ -94,8 +94,17 @@ server.on('connection', (socket) => {
 							JSON.stringify({
 								type: 'winner',
 								winner,
+								players: formattedPlayers,
+								currentPlayer: null,
+								minBet: 0,
+								hasStarted: false,
+								flop: null,
 							}),
 						);
+						deck.reset();
+						for (const p of players) {
+							p.changeHand(deck);
+						}
 					}
 				} else {
 					for (const s of sockets) {
@@ -128,8 +137,17 @@ server.on('connection', (socket) => {
 							JSON.stringify({
 								type: 'winner',
 								winner,
+								players: formattedPlayers,
+								currentPlayer: null,
+								minBet: 0,
+								hasStarted: false,
+								flop: null,
 							}),
 						);
+						deck.reset();
+						for (const p of players) {
+							p.changeHand(deck);
+						}
 					}
 				} else {
 					for (const s of sockets) {
@@ -166,8 +184,17 @@ server.on('connection', (socket) => {
 							JSON.stringify({
 								type: 'winner',
 								winner,
+								players: formattedPlayers,
+								currentPlayer: null,
+								minBet: 0,
+								hasStarted: false,
+								flop: null,
 							}),
 						);
+						deck.reset();
+						for (const p of players) {
+							p.changeHand(deck);
+						}
 					}
 				} else {
 					for (const s of sockets) {
