@@ -4,8 +4,8 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"build": "tsup src",
-		"start": "node dist/server.js",
+		"build": "tsup src --outDir build",
+		"start": "node build/server.js",
 		"dev": "tsx watch src/server.ts",
 		"test": "vitest --dir tests",
 		"test:coverage": "vitest --dir tests --coverage"

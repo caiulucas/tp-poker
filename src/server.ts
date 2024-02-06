@@ -244,5 +244,9 @@ server.on('connection', (socket) => {
 				}),
 			);
 		}
+
+		if (players.length === 0) {
+			deck.reset();
+		}
 	});
 });
