@@ -6,11 +6,11 @@ import { Poker } from './core/models/poker';
 
 const server = new WebSocket.Server(
 	{
-		host: 'localhost',
-		port: 3333,
+		host: '',
+		port: 8080,
 	},
 	() => {
-		console.log('Server is listening on port 3333');
+		console.log(`Server is running on port ${server.options.port}`);
 	},
 );
 
