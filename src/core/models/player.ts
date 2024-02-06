@@ -1,18 +1,23 @@
 import { Deck } from './deck';
 import { Hand } from './hand';
-import { Poker } from './poker';
 
 export class Player {
+	private _id: string;
 	private _hand: Hand;
 	private _chips: number;
 
-	private constructor(deck: Deck) {
+	private constructor(id: string, deck: Deck) {
+		this._id = id;
 		this._hand = Hand.create(deck);
 		this._chips = 1000;
 	}
 
-	public static create(deck: Deck) {
-		return new Player(deck);
+	public static create(id: string, deck: Deck) {
+		return new Player(id, deck);
+	}
+
+	public get id() {
+		return this._id;
 	}
 
 	public get hand() {
@@ -21,10 +26,6 @@ export class Player {
 
 	public get chips() {
 		return this._chips;
-	}
-
-	public fold(game: Poker) {
-		game.changeLastAction(this, 'fold');
 	}
 
 	public bet(value: number) {
