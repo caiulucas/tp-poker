@@ -34,6 +34,6 @@ export class Player {
 		}
 
 		this._chips -= value;
-		return value;
+		return { player: this, bet: value };
 	}
 }

@@ -3,17 +3,20 @@ import { Card } from './card';
 import { Deck } from './deck';
 import { Player } from './player';
 
-type Action = 'fold' | 'check' | 'call' | 'raise';
+type Action = 'fold' | 'check' | 'bet';
 
 type PlayerState = {
 	player: Player;
+	isCurrentPlayer?: boolean;
 	lastAction?: Action;
-	lastBet?: number;
 };
 export class Poker {
 	private _playerStates: PlayerState[] = [];
 	private _flop: Card[] = [];
 	private _pot = 0;
+	private _minBet = 0;
+	private _checkCount = 0;
+	private _betCount = 0;
 
 	private constructor(deck: Deck, players: Player[]) {
 		for (let i = 0; i < 3; i++) {
@@ -27,13 +30,14 @@ export class Poker {
 		}
 
 		this._playerStates = players.map((player) => ({ player }));
+		this._playerStates[0].isCurrentPlayer = true;
 	}
 
 	public static start(deck: Deck, players: Player[]) {
 		return new Poker(deck, players);
 	}
 
-	public turnOrRiver(deck: Deck): Card {
+	public turnOrRiver(deck: Deck) {
 		if (this._flop.length === 5) {
 			throw new Error('The flop reached its limit');
 		}
@@ -44,7 +48,18 @@ export class Poker {
 			throw new Error('No more cards in deck');
 		}
 
-		return card;
+		this._flop.push(card);
+	}
+
+	private nextPlayer() {
+		const currentPlayerIndex = this._playerStates.findIndex(
+			(playerState) => playerState.isCurrentPlayer,
+		);
+
+		this._playerStates[currentPlayerIndex].isCurrentPlayer = false;
+		this._playerStates[
+			(currentPlayerIndex + 1) % this._playerStates.length
+		].isCurrentPlayer = true;
 	}
 
 	public fold(player: Player) {
@@ -56,14 +71,18 @@ export class Poker {
 			throw new Error('Player not found');
 		}
 
-		if (playerState.lastAction === 'fold') {
-			throw new Error('Player already folded');
+		this._playerStates = this._playerStates.filter(
+			(playerState) => playerState.player !== player,
+		);
+
+		if (this._playerStates.length === 1) {
+			return this.winners();
 		}
 
-		playerState.lastAction = 'fold';
+		this.nextPlayer();
 	}
 
-	public call(player: Player, value: number) {
+	public bet(player: Player, value: number, deck: Deck) {
 		const playerState = this._playerStates.find(
 			(playerState) => playerState.player === player,
 		);
@@ -72,66 +91,55 @@ export class Poker {
 			throw new Error('Player not found');
 		}
 
-		if (playerState.lastAction === 'fold') {
-			throw new Error('Player already folded');
+		if (value < this._minBet) {
+			throw new Error('Player must bet at least the current bet');
 		}
 
-		const bet = player.bet(value);
+		const { player: updatedPlayer, bet } = player.bet(value);
 		this._pot += bet;
 
-		playerState.lastAction = 'call';
-		playerState.lastBet = bet;
+		playerState.lastAction = 'bet';
+		this._minBet = bet;
+		this._betCount++;
+
+		if (this._betCount === this._playerStates.length) {
+			if (this._flop.length === 5) {
+				return { player: updatedPlayer, winner: this.winners() };
+			}
+
+			while (this._flop.length < 5) {
+				this.turnOrRiver(deck);
+			}
+
+			this._betCount = 0;
+		}
+
+		this.nextPlayer();
+		return { player: updatedPlayer };
 	}
 
-	public raise(player: Player, value: number) {
-		const playerStateIndex =
-			this._playerStates.findIndex(
-				(playerState) => playerState.player === player,
-			) -
-			(1 % this._playerStates.length);
-
-		const lastPlayerState = this._playerStates[playerStateIndex];
-		const playerState = this._playerStates.find(
-			(playerState) => playerState.player === player,
-		);
-
-		if (!lastPlayerState || !playerState) {
-			throw new Error('Player not found');
-		}
-
-		if (playerState.lastAction === 'fold') {
-			throw new Error('Player already folded');
-		}
-
-		if (lastPlayerState.lastBet === undefined) {
-			throw new Error('Player did not bet yet');
-		}
-
-		if (lastPlayerState.lastBet >= value) {
-			throw new Error('Player must raise the bet');
-		}
-
-		const bet = player.bet(value);
-		this._pot += bet;
-
-		playerState.lastAction = 'raise';
-		playerState.lastBet = bet;
-	}
-
-	public check(player: Player) {
+	public check(player: Player, deck: Deck) {
 		const playerState = this._playerStates.find(
 			(playerState) => playerState.player === player,
 		);
 
 		if (!playerState) {
 			throw new Error('Player not found');
-		}
-
-		if (playerState.lastAction === 'fold') {
-			throw new Error('Player already folded');
 		}
 
 		playerState.lastAction = 'check';
+		this._checkCount++;
+
+		if (this._checkCount === this._playerStates.length) {
+			if (this._flop.length === 5) {
+				return this.winners();
+			}
+
+			this._checkCount = 0;
+			this.turnOrRiver(deck);
+		}
+
+		this.nextPlayer();
 	}
 
 	public winners() {
@@ -167,5 +175,21 @@ export class Poker {
 
 	public get pot() {
 		return this._pot;
+	}
+
+	public get currentPlayer() {
+		const playerState = this._playerStates.find(
+			(playerState) => playerState.isCurrentPlayer,
+		);
+
+		if (!playerState) {
+			throw new Error('No current player');
+		}
+
+		return playerState.player;
+	}
+
+	public get minBet() {
+		return this._minBet;
 	}
 }
